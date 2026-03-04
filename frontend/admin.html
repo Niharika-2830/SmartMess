@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart Mess | Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="admin" class="page">
+  <div class="page-gradient"></div>
+
+  <header class="top-nav">
+    <div class="top-nav-left">
+      <div class="nav-logo">SM</div>
+      <div class="nav-brand">
+        <span class="nav-title">Smart Mess</span>
+        <span class="nav-subtitle">Admin Console</span>
+      </div>
+    </div>
+    <nav class="top-nav-right">
+      <button class="nav-link nav-link-button active" data-admin-tab="analytics">
+        Today's analytics
+      </button>
+      <button class="nav-link nav-link-button" data-admin-tab="feedbacks">
+        Student feedbacks
+      </button>
+      <button id="logoutBtn" class="nav-logout">Logout</button>
+    </nav>
+  </header>
+
+  <main class="main-layout main-layout--admin" id="adminAnalyticsPage">
+    <section class="section-header">
+      <div>
+        <p class="section-kicker">Overview</p>
+        <h1 class="section-title">Today's mess insights</h1>
+        <p class="section-subtitle">
+          Track attendance across meals and quickly review the latest student
+          feedback to optimise planning and reduce wastage.
+        </p>
+      </div>
+    </section>
+
+    <section class="admin-grid">
+      <div class="admin-left">
+        <div class="admin-stats-row">
+          <article class="stat-card">
+            <p class="stat-label">Breakfast</p>
+            <h2 class="stat-value" id="statBreakfast">0</h2>
+            <p class="stat-sub">Expected attendees</p>
+          </article>
+          <article class="stat-card">
+            <p class="stat-label">Lunch</p>
+            <h2 class="stat-value" id="statLunch">0</h2>
+            <p class="stat-sub">Expected attendees</p>
+          </article>
+          <article class="stat-card">
+            <p class="stat-label">Dinner</p>
+            <h2 class="stat-value" id="statDinner">0</h2>
+            <p class="stat-sub">Expected attendees</p>
+          </article>
+        </div>
+
+        <article class="card card-chart">
+          <div class="card-chart-header">
+            <div>
+              <h2 class="card-title">Attendance distribution</h2>
+              <p class="card-text">
+                Simple visual of expected turnout per meal. Ideal for portion
+                planning and procurement.
+              </p>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="attendanceChart"></canvas>
+          </div>
+        </article>
+
+        <article class="card card-timetable-upload">
+          <div class="card-chart-header">
+            <div>
+              <h2 class="card-title">Mess meal timetable</h2>
+              <p class="card-text">
+                Upload the weekly or monthly mess timetable so that students can
+                access the latest version from their dashboard.
+              </p>
+            </div>
+          </div>
+          <div class="timetable-upload-row">
+            <input
+              type="file"
+              id="timetableFile"
+              class="timetable-file-input"
+              accept=".pdf,.jpg,.jpeg,.png"
+            />
+            <button id="uploadTimetableBtn" class="btn btn-primary">
+              Upload timetable
+            </button>
+          </div>
+          <p class="card-text" id="timetableCurrentInfo">
+            No timetable uploaded yet.
+          </p>
+        </article>
+      </div>
+
+      <aside class="admin-right">
+        <article class="card card-feedback-list">
+          <div class="card-feedback-header">
+            <h2 class="card-title">Recent feedback</h2>
+            <p class="card-text">
+              Latest student comments, sorted by most recent first.
+            </p>
+          </div>
+          <ul id="feedbackList" class="feedback-list">
+            <!-- Populated by JS -->
+          </ul>
+          <p class="feedback-empty" id="feedbackEmpty">
+            No feedback yet today. Encourage students to share their thoughts.
+          </p>
+        </article>
+      </aside>
+    </section>
+  </main>
+
+  <main class="main-layout main-layout--admin tab-hidden" id="adminFeedbackPage">
+    <section class="section-header">
+      <div>
+        <p class="section-kicker">Student feedbacks</p>
+        <h1 class="section-title">Detailed feedback table</h1>
+        <p class="section-subtitle">
+          View structured feedback for taste, quantity, quality and mess
+          maintenance. Export the data for further analysis.
+        </p>
+      </div>
+    </section>
+
+    <section class="card card-feedback-table">
+      <div class="card-chart-header">
+        <div>
+          <h2 class="card-title">Feedback for today</h2>
+          <p class="card-text">
+            Each row represents one student's submission. Older free‑text
+            feedback is shown in the "Other comments" column.
+          </p>
+        </div>
+        <div class="feedback-table-actions">
+          <button id="downloadCsvBtn" class="btn btn-toggle">
+            Download CSV
+          </button>
+          <button id="printFeedbackBtn" class="btn btn-toggle">
+            Print / Save as PDF
+          </button>
+        </div>
+      </div>
+
+      <div class="feedback-table-wrapper">
+        <table class="feedback-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Taste</th>
+              <th>Quantity</th>
+              <th>Quality</th>
+              <th>Maintenance &amp; hygiene</th>
+              <th>Other comments</th>
+              <th>Submitted at</th>
+            </tr>
+          </thead>
+          <tbody id="feedbackTableBody">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+        <p class="feedback-empty" id="feedbackTableEmpty">
+          No feedback yet today. Data will appear here once students submit.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js" defer></script>
+</body>
+</html>

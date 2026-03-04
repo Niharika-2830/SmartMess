@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart Mess | Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="login" class="page page--auth">
+  <div class="page-gradient"></div>
+
+  <main class="auth-layout">
+    <section class="auth-side-info">
+      <div class="brand-badge">
+        <div class="brand-logo-circle">SM</div>
+        <div>
+          <h1 class="brand-title">Smart Mess</h1>
+          <p class="brand-subtitle">Smart, waste‑aware dining for campuses.</p>
+        </div>
+      </div>
+      <p class="auth-tagline">
+        Predict attendance, reduce food wastage, and run your hostel mess
+        like a modern SaaS product.
+      </p>
+      <ul class="auth-highlights">
+        <li><span class="dot"></span>Real‑time attendance toggles</li>
+        <li><span class="dot"></span>Insightful feedback analytics</li>
+        <li><span class="dot"></span>Beautiful, responsive dashboards</li>
+      </ul>
+    </section>
+
+    <section class="auth-card">
+      <div class="auth-card-header">
+        <div class="logo-placeholder">
+          <span class="logo-initials">CLG</span>
+        </div>
+        <h2>Welcome back</h2>
+        <p class="auth-secondary-text">
+          Sign in to manage your daily mess attendance.
+        </p>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <div class="field-group">
+          <label for="email">College Email</label>
+          <input
+            type="email"
+            id="email"
+            placeholder="you@college.edu"
+            required
+          />
+        </div>
+
+        <div class="field-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            placeholder="••••••••"
+            required
+          />
+        </div>
+
+        <div class="field-group">
+          <label for="role">Sign in as</label>
+          <select id="role">
+            <option value="student">Student</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">
+          Continue
+        </button>
+      </form>
+
+      <p class="auth-footer-text">
+        By logging in you agree to our
+        <span class="link-muted">Terms</span> &amp;
+        <span class="link-muted">Privacy Policy</span>.
+      </p>
+    </section>
+  </main>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

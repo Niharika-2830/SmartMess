@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart Mess | Student Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="student" class="page">
+  <div class="page-gradient"></div>
+
+  <header class="top-nav">
+    <div class="top-nav-left">
+      <div class="nav-logo">SM</div>
+      <div class="nav-brand">
+        <span class="nav-title">Smart Mess</span>
+        <span class="nav-subtitle">Student Portal</span>
+      </div>
+    </div>
+    <nav class="top-nav-right">
+      <a href="#dashboard" class="nav-link active" data-tab="dashboard">Dashboard</a>
+      <a href="#feedback" class="nav-link" data-tab="feedback">Feedback</a>
+      <button id="logoutBtn" class="nav-logout">Logout</button>
+    </nav>
+  </header>
+
+  <main class="main-layout" id="dashboard">
+    <section class="section-header">
+      <div>
+        <p class="section-kicker">Today</p>
+        <h1 class="section-title">
+          Good day, <span id="studentName">Student</span> 👋
+        </h1>
+        <p class="section-subtitle">
+          Toggle your attendance for each meal to help us prevent food waste.
+        </p>
+      </div>
+    </section>
+
+    <section class="card card-highlight">
+      <div>
+        <h2 class="card-title">Today's Mess Plan</h2>
+        <p class="card-text">
+          Please update your attendance before the cutoff time for each meal.
+          Your responses help the mess team plan portions more accurately.
+        </p>
+      </div>
+      <div class="card-metrics">
+        <div class="metric">
+          <span class="metric-label">Streak</span>
+          <span class="metric-value" id="streakValue">5 days</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">On‑time updates</span>
+          <span class="metric-value">92%</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="attendance-section">
+      <h2 class="section-block-title">Meal attendance</h2>
+      <div class="attendance-grid">
+        <article class="attendance-card" data-meal="breakfast">
+          <div class="attendance-header">
+            <span class="meal-pill meal-pill--breakfast">Breakfast</span>
+            <span class="cutoff-label">Cutoff: 9:00 pm (Prev night)</span>
+          </div>
+          <p class="attendance-description">
+            Light start with fruits, cereal, and hot beverages.
+          </p>
+          <div class="attendance-footer">
+            <button
+              class="btn btn-toggle attendance-toggle"
+              data-meal="breakfast"
+            >
+              Will Attend
+            </button>
+            <span class="attendance-status" data-status="breakfast">
+              Status: <strong>Will Attend</strong>
+            </span>
+          </div>
+        </article>
+
+        <article class="attendance-card" data-meal="lunch">
+          <div class="attendance-header">
+            <span class="meal-pill meal-pill--lunch">Lunch</span>
+            <span class="cutoff-label">Cutoff: 10:30 am</span>
+          </div>
+          <p class="attendance-description">
+            Main meal with balanced portions, salads, and dessert options.
+          </p>
+          <div class="attendance-footer">
+            <button
+              class="btn btn-toggle attendance-toggle"
+              data-meal="lunch"
+            >
+              Will Attend
+            </button>
+            <span class="attendance-status" data-status="lunch">
+              Status: <strong>Will Attend</strong>
+            </span>
+          </div>
+        </article>
+
+        <article class="attendance-card" data-meal="dinner">
+          <div class="attendance-header">
+            <span class="meal-pill meal-pill--dinner">Dinner</span>
+            <span class="cutoff-label">Cutoff: 5:00 pm</span>
+          </div>
+          <p class="attendance-description">
+            Warm, comforting dinner to end the day on a good note.
+          </p>
+          <div class="attendance-footer">
+            <button
+              class="btn btn-toggle attendance-toggle"
+              data-meal="dinner"
+            >
+              Will Attend
+            </button>
+            <span class="attendance-status" data-status="dinner">
+              Status: <strong>Will Attend</strong>
+            </span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="card card-timetable" id="studentTimetableCard">
+      <div>
+        <h2 class="card-title">Mess meal timetable</h2>
+        <p class="card-text" id="studentTimetableEmpty">
+          The mess meal timetable has not been uploaded yet. Once the admin
+          publishes it, you can view it here.
+        </p>
+      </div>
+      <div class="timetable-actions" id="studentTimetableActions" style="display:none;">
+        <a
+          id="studentTimetableLink"
+          class="btn btn-toggle"
+          href="#"
+          target="_blank"
+        >
+          View timetable
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <main class="main-layout main-layout--feedback tab-hidden" id="feedbackPage">
+    <section class="section-header">
+      <div>
+        <p class="section-kicker">Feedback</p>
+        <h1 class="section-title">Help us improve your mess</h1>
+        <p class="section-subtitle">
+          Tell us about today’s food taste, quantity, quality, and how well the mess is being maintained.
+        </p>
+      </div>
+    </section>
+
+    <section class="feedback-section" id="feedback">
+      <div class="feedback-card">
+        <div class="field-group">
+          <label>Food taste</label>
+          <select id="feedbackTaste">
+            <option value="">Select rating</option>
+            <option value="1">1 - Very poor</option>
+            <option value="2">2 - Poor</option>
+            <option value="3">3 - Average</option>
+            <option value="4">4 - Good</option>
+            <option value="5">5 - Excellent</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label>Food quantity</label>
+          <select id="feedbackQuantity">
+            <option value="">Select rating</option>
+            <option value="1">1 - Very less</option>
+            <option value="2">2 - Less</option>
+            <option value="3">3 - Adequate</option>
+            <option value="4">4 - More than enough</option>
+            <option value="5">5 - Excessive</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label>Food quality</label>
+          <select id="feedbackQuality">
+            <option value="">Select rating</option>
+            <option value="1">1 - Very bad</option>
+            <option value="2">2 - Bad</option>
+            <option value="3">3 - Okay</option>
+            <option value="4">4 - Good</option>
+            <option value="5">5 - Excellent</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label>Mess maintenance &amp; hygiene</label>
+          <select id="feedbackMaintenance">
+            <option value="">Select rating</option>
+            <option value="1">1 - Very poor</option>
+            <option value="2">2 - Needs improvement</option>
+            <option value="3">3 - Acceptable</option>
+            <option value="4">4 - Good</option>
+            <option value="5">5 - Excellent</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label for="feedbackText">Other issues / comments</label>
+          <textarea
+            id="feedbackText"
+            rows="4"
+            placeholder="Mention any specific issues, suggestions, or appreciation about the mess, staff, or overall experience..."
+          ></textarea>
+        </div>
+
+        <div class="feedback-footer-row">
+          <div class="feedback-rating">
+            <span class="feedback-label">Overall rating for today</span>
+            <div class="star-rating" id="starRating" data-rating="0">
+              <span class="star" data-value="1">&#9733;</span>
+              <span class="star" data-value="2">&#9733;</span>
+              <span class="star" data-value="3">&#9733;</span>
+              <span class="star" data-value="4">&#9733;</span>
+              <span class="star" data-value="5">&#9733;</span>
+            </div>
+          </div>
+
+          <div class="feedback-actions">
+            <span class="feedback-status" id="feedbackStatus"></span>
+            <button id="feedbackSubmit" class="btn btn-primary">
+              Submit feedback
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
