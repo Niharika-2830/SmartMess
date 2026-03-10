@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Smart Mess | Student Dashboard</title>
+  <title>SmartDine | Student Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Google Font -->
@@ -20,14 +20,15 @@
 
   <header class="top-nav">
     <div class="top-nav-left">
-      <div class="nav-logo">SM</div>
+      <div class="nav-logo">SD</div>
       <div class="nav-brand">
-        <span class="nav-title">Smart Mess</span>
+        <span class="nav-title">SmartDine</span>
         <span class="nav-subtitle">Student Portal</span>
       </div>
     </div>
     <nav class="top-nav-right">
       <a href="#dashboard" class="nav-link active" data-tab="dashboard">Dashboard</a>
+      <a href="#timetable" class="nav-link" data-tab="timetable">Timetable</a>
       <a href="#feedback" class="nav-link" data-tab="feedback">Feedback</a>
       <button id="logoutBtn" class="nav-logout">Logout</button>
     </nav>
@@ -46,24 +47,11 @@
       </div>
     </section>
 
-    <section class="card card-highlight">
-      <div>
-        <h2 class="card-title">Today's Mess Plan</h2>
-        <p class="card-text">
-          Please update your attendance before the cutoff time for each meal.
-          Your responses help the mess team plan portions more accurately.
-        </p>
-      </div>
-      <div class="card-metrics">
-        <div class="metric">
-          <span class="metric-label">Streak</span>
-          <span class="metric-value" id="streakValue">5 days</span>
-        </div>
-        <div class="metric">
-          <span class="metric-label">On‑time updates</span>
-          <span class="metric-value">92%</span>
-        </div>
-      </div>
+    <section class="card">
+      <p class="card-text">
+        Please update your attendance before the cutoff time for each meal.
+        Your responses help the mess team plan portions more accurately.
+      </p>
     </section>
 
     <section class="attendance-section">
@@ -131,26 +119,6 @@
             </span>
           </div>
         </article>
-      </div>
-    </section>
-
-    <section class="card card-timetable" id="studentTimetableCard">
-      <div>
-        <h2 class="card-title">Mess meal timetable</h2>
-        <p class="card-text" id="studentTimetableEmpty">
-          The mess meal timetable has not been uploaded yet. Once the admin
-          publishes it, you can view it here.
-        </p>
-      </div>
-      <div class="timetable-actions" id="studentTimetableActions" style="display:none;">
-        <a
-          id="studentTimetableLink"
-          class="btn btn-toggle"
-          href="#"
-          target="_blank"
-        >
-          View timetable
-        </a>
       </div>
     </section>
 
@@ -245,6 +213,40 @@
             </button>
           </div>
         </div>
+      </div>
+    </section>
+  </main>
+
+  <main class="main-layout main-layout--timetable tab-hidden" id="timetablePage">
+    <section class="section-header">
+      <div>
+        <p class="section-kicker">Timetable</p>
+        <h1 class="section-title">Mess meal timetable</h1>
+        <p class="section-subtitle">
+          View the latest mess timetable uploaded by the admin for your hostel.
+        </p>
+      </div>
+    </section>
+
+    <section class="card card-timetable" id="studentTimetableCard">
+      <div>
+        <h2 class="card-title">Current timetable</h2>
+        <p class="card-text" id="studentTimetableEmpty">
+          The mess meal timetable has not been uploaded yet. Once the admin
+          publishes it, you can view it here.
+        </p>
+      </div>
+      <div
+        class="timetable-image-wrapper"
+        id="studentTimetableImageWrapper"
+        style="display:none;"
+      >
+        <img
+          id="studentTimetableImage"
+          class="timetable-image"
+          src=""
+          alt="Mess meal timetable"
+        />
       </div>
     </section>
   </main>

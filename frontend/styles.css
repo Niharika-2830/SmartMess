@@ -152,7 +152,23 @@
     border-radius: 999px;
     background: var(--accent);
   }
-  
+
+  .auth-side-image {
+    margin-top: 20px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
+  }
+
+  .auth-side-image img {
+    width: 100%;
+    height: auto;
+    max-height: 220px;
+    object-fit: cover;
+    display: block;
+  }
+
   /* Auth card */
   .auth-card {
   padding: 40px 40px 32px;
@@ -976,6 +992,105 @@
 .timetable-actions {
   display: flex;
   align-items: center;
+}
+
+/* Student timetable image */
+.timetable-image-wrapper {
+  max-width: 100%;
+  max-height: 420px;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background-color: #ffffff;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+}
+
+.timetable-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Admin food plan card */
+.card-food-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.food-plan-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.food-plan-header {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.food-plan-meal-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-top: 12px;
+  padding-bottom: 4px;
+}
+
+.food-plan-meal-title:first-of-type {
+  margin-top: 4px;
+}
+
+.food-plan-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(248, 250, 252, 0.95);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.food-plan-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.food-plan-qty {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.food-plan-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Feedback analytics layout */
+.feedback-analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 720px) {
+  .feedback-analytics-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Disabled attendance buttons */
+.attendance-toggle[disabled],
+.attendance-toggle-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
   
   /* Responsiveness */

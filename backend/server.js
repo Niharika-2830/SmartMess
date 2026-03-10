@@ -10,6 +10,67 @@ const PORT = 4000;
 // --- Middleware ---
 app.use(express.json());
 
+// --- Simple rule-based food estimation (no ML) ---
+// Per-student quantities for each item (adjust as per your mess standards)
+const MEAL_ITEMS = {
+  breakfast: [
+    { name: "Poha / Upma", perPerson: 0.12, unit: "kg" },
+    { name: "Idli / Dosa count", perPerson: 2, unit: "pieces" },
+    { name: "Chutney", perPerson: 0.03, unit: "kg" },
+    { name: "Sambar", perPerson: 0.08, unit: "L" },
+    { name: "Beverage (Tea/Milk)", perPerson: 0.15, unit: "L" },
+  ],
+  lunch: [
+    { name: "Rice", perPerson: 0.18, unit: "kg" },
+    { name: "Dal / Sambar", perPerson: 0.1, unit: "L" },
+    { name: "Curry (vegetable)", perPerson: 0.1, unit: "kg" },
+    { name: "Curd", perPerson: 0.12, unit: "L" },
+    { name: "Salad", perPerson: 0.05, unit: "kg" },
+  ],
+  dinner: [
+    { name: "Rice", perPerson: 0.18, unit: "kg" },
+    { name: "Dal", perPerson: 0.1, unit: "L" },
+    { name: "Curry (vegetable)", perPerson: 0.1, unit: "kg" },
+    { name: "Curd", perPerson: 0.12, unit: "L" },
+  ],
+};
+
+const MEAL_LABELS = {
+  breakfast: "Breakfast",
+  lunch: "Lunch",
+  dinner: "Dinner",
+};
+
+function computeFoodPlan(counts, dateValue) {
+  const dateStr = dateValue || today();
+  const meals = ["breakfast", "lunch", "dinner"];
+  const result = [];
+
+  meals.forEach((meal) => {
+    const expected = counts[meal] || 0;
+    const items = (MEAL_ITEMS[meal] || []).map((item) => {
+      const qty = expected * (item.perPerson || 0);
+      const rounded = Number(qty.toFixed(2));
+      return {
+        itemName: item.name,
+        quantity: rounded,
+        unit: item.unit,
+        display: `${item.name} - ${rounded} ${item.unit}`,
+      };
+    });
+
+    result.push({
+      meal,
+      mealLabel: MEAL_LABELS[meal] || meal,
+      date: dateStr,
+      expectedStudents: expected,
+      items,
+    });
+  });
+
+  return result;
+}
+
 // Serve static frontend
 const frontendPath = path.join(__dirname, "..", "frontend");
 app.use(express.static(frontendPath));
@@ -221,6 +282,8 @@ app.get("/api/admin/summary", (req, res) => {
         counts[r.meal] = r.count;
       });
 
+      const foodPlan = computeFoodPlan(counts, date);
+
       db.all(
         `SELECT f.id, f.rating, f.message, f.created_at, s.name
          FROM feedback f
@@ -236,6 +299,7 @@ app.get("/api/admin/summary", (req, res) => {
           res.json({
             date,
             counts,
+            foodPlan,
             feedback: feedbackRows,
           });
         }

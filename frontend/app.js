@@ -115,8 +115,11 @@ async function initStudentPage() {
     setAttendanceButtonState(btn, isAttending);
   });
 
+  applyAttendanceCutoffs(attendanceButtons);
+
   attendanceButtons.forEach((btn) => {
     btn.addEventListener("click", async () => {
+      if (btn.disabled) return;
       const meal = btn.dataset.meal;
       const current = btn.classList.contains("btn-toggle--active");
       const next = !current;
@@ -142,6 +145,35 @@ async function initStudentPage() {
   initFeedbackSection(studentId);
   scheduleAttendanceReminders();
   loadTimetableForStudent();
+}
+
+function applyAttendanceCutoffs(buttons) {
+  const now = new Date();
+  const minutesNow = now.getHours() * 60 + now.getMinutes();
+
+  const BREAKFAST_CUTOFF = 21 * 60; // 21:00
+  const LUNCH_CUTOFF = 10 * 60 + 30; // 10:30
+  const DINNER_CUTOFF = 17 * 60; // 17:00
+
+  buttons.forEach((btn) => {
+    const meal = btn.dataset.meal;
+    if (!meal) return;
+
+    let disabled = false;
+    if (meal === "breakfast") {
+      disabled = minutesNow >= BREAKFAST_CUTOFF;
+    } else if (meal === "lunch") {
+      disabled = minutesNow >= LUNCH_CUTOFF;
+    } else if (meal === "dinner") {
+      disabled = minutesNow >= DINNER_CUTOFF;
+    }
+
+    btn.disabled = disabled;
+    btn.classList.toggle("attendance-toggle-disabled", disabled);
+    if (disabled) {
+      btn.textContent = "Cutoff passed";
+    }
+  });
 }
 
 async function fetchAttendanceState(studentId) {
@@ -203,7 +235,8 @@ function updateAttendanceStatusLabels(state) {
 function setupStudentTabs() {
   const dashboardMain = document.getElementById("dashboard");
   const feedbackMain = document.getElementById("feedbackPage");
-  if (!dashboardMain || !feedbackMain) return;
+  const timetableMain = document.getElementById("timetablePage");
+  if (!dashboardMain || !feedbackMain || !timetableMain) return;
 
   const links = document.querySelectorAll(".top-nav-right .nav-link[data-tab]");
 
@@ -213,13 +246,9 @@ function setupStudentTabs() {
       link.classList.toggle("active", isActive);
     });
 
-    if (tab === "dashboard") {
-      dashboardMain.classList.remove("tab-hidden");
-      feedbackMain.classList.add("tab-hidden");
-    } else {
-      dashboardMain.classList.add("tab-hidden");
-      feedbackMain.classList.remove("tab-hidden");
-    }
+    dashboardMain.classList.toggle("tab-hidden", tab !== "dashboard");
+    feedbackMain.classList.toggle("tab-hidden", tab !== "feedback");
+    timetableMain.classList.toggle("tab-hidden", tab !== "timetable");
   }
 
   links.forEach((link) => {
@@ -341,10 +370,10 @@ function initFeedbackSection(studentId) {
 
 // Load timetable for student
 async function loadTimetableForStudent() {
-  const link = document.getElementById("studentTimetableLink");
+  const img = document.getElementById("studentTimetableImage");
   const emptyEl = document.getElementById("studentTimetableEmpty");
-  const actions = document.getElementById("studentTimetableActions");
-  if (!link || !emptyEl || !actions) return;
+  const wrapper = document.getElementById("studentTimetableImageWrapper");
+  if (!img || !emptyEl || !wrapper) return;
 
   try {
     const res = await fetch("/api/timetable");
@@ -353,19 +382,20 @@ async function loadTimetableForStudent() {
 
     if (!data || !data.url) {
       emptyEl.style.display = "block";
-      actions.style.display = "none";
+      wrapper.style.display = "none";
+      img.removeAttribute("src");
       return;
     }
 
-    emptyEl.textContent = data.originalName
-      ? `Latest timetable: ${data.originalName}`
-      : "Latest timetable uploaded by admin.";
-    link.href = data.url;
-    actions.style.display = "flex";
+    // Timetable available: just show the image and hide extra text.
+    emptyEl.style.display = "none";
+    img.src = data.url;
+    wrapper.style.display = "block";
   } catch (err) {
     console.error("Student timetable fetch error", err);
     emptyEl.textContent = "Unable to load timetable at the moment.";
-    actions.style.display = "none";
+    wrapper.style.display = "none";
+    img.removeAttribute("src");
   }
 }
 
@@ -486,18 +516,22 @@ function showInAppAttendanceBanner(title, body) {
     container.remove();
     const dashboardMain = document.getElementById("dashboard");
     const feedbackMain = document.getElementById("feedbackPage");
-    if (dashboardMain && feedbackMain) {
-      dashboardMain.classList.remove("tab-hidden");
-      feedbackMain.classList.add("tab-hidden");
-    }
+    const timetableMain = document.getElementById("timetablePage");
+    if (dashboardMain) dashboardMain.classList.remove("tab-hidden");
+    if (feedbackMain) feedbackMain.classList.add("tab-hidden");
+    if (timetableMain) timetableMain.classList.add("tab-hidden");
     const dashboardLink = document.querySelector(
       '.top-nav-right .nav-link[data-tab="dashboard"]'
     );
     const feedbackLink = document.querySelector(
       '.top-nav-right .nav-link[data-tab="feedback"]'
     );
+    const timetableLink = document.querySelector(
+      '.top-nav-right .nav-link[data-tab="timetable"]'
+    );
     if (dashboardLink) dashboardLink.classList.add("active");
     if (feedbackLink) feedbackLink.classList.remove("active");
+    if (timetableLink) timetableLink.classList.remove("active");
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
@@ -545,7 +579,7 @@ async function fetchAdminSummary() {
 }
 
 function applyAdminSummary(summary) {
-  const { counts, feedback } = summary;
+  const { counts, feedback, foodPlan } = summary;
 
   const statBreakfast = document.getElementById("statBreakfast");
   const statLunch = document.getElementById("statLunch");
@@ -558,6 +592,341 @@ function applyAdminSummary(summary) {
   renderFeedbackListAdmin(feedback);
   renderFeedbackTable(feedback);
   initAttendanceChart(counts);
+  initFeedbackMetricsChart(feedback);
+}
+
+let feedbackMetricsChart = null;
+let feedbackCommentsChart = null;
+
+function initFeedbackMetricsChart(list) {
+  const canvas = document.getElementById("feedbackMetricsChart");
+  const summaryEl = document.getElementById("feedbackSummaryText");
+  if (!canvas || typeof Chart === "undefined") return;
+
+  // Destroy existing chart if re-rendering.
+  if (feedbackMetricsChart) {
+    feedbackMetricsChart.destroy();
+    feedbackMetricsChart = null;
+  }
+
+  if (!list || !list.length) {
+    if (summaryEl) {
+      summaryEl.textContent =
+        "No feedback submitted yet today. Once students start submitting, satisfaction analytics will appear here.";
+    }
+    return;
+  }
+
+  const totals = {
+    overall: 0,
+    taste: 0,
+    quantity: 0,
+    quality: 0,
+    maintenance: 0,
+  };
+
+  const counts = {
+    overall: 0,
+    taste: 0,
+    quantity: 0,
+    quality: 0,
+    maintenance: 0,
+  };
+
+  function parseScore(value) {
+    if (!value) return null;
+    const match = String(value).match(/(\d+(\.\d+)?)/);
+    if (!match) return null;
+    const num = Number(match[1]);
+    return Number.isNaN(num) ? null : num;
+  }
+
+  list.forEach((item) => {
+    if (typeof item.rating === "number" && item.rating > 0) {
+      totals.overall += item.rating;
+      counts.overall += 1;
+    }
+
+    const parsed = parseStructuredFeedback(item.message);
+
+    const tasteScore = parseScore(parsed.taste);
+    if (tasteScore !== null) {
+      totals.taste += tasteScore;
+      counts.taste += 1;
+    }
+
+    const quantityScore = parseScore(parsed.quantity);
+    if (quantityScore !== null) {
+      totals.quantity += quantityScore;
+      counts.quantity += 1;
+    }
+
+    const qualityScore = parseScore(parsed.quality);
+    if (qualityScore !== null) {
+      totals.quality += qualityScore;
+      counts.quality += 1;
+    }
+
+    const maintenanceScore = parseScore(parsed.maintenance);
+    if (maintenanceScore !== null) {
+      totals.maintenance += maintenanceScore;
+      counts.maintenance += 1;
+    }
+  });
+
+  const avg = (key) =>
+    counts[key] > 0 ? Number((totals[key] / counts[key]).toFixed(2)) : 0;
+
+  const dataValues = [
+    avg("overall"),
+    avg("taste"),
+    avg("quantity"),
+    avg("quality"),
+    avg("maintenance"),
+  ];
+
+  const ctx = canvas.getContext("2d");
+
+  feedbackMetricsChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: [
+        "Overall rating",
+        "Taste",
+        "Quantity",
+        "Quality",
+        "Maintenance & hygiene",
+      ],
+      datasets: [
+        {
+          label: "Average score (out of 5)",
+          data: dataValues,
+          backgroundColor: [
+            "rgba(129, 140, 248, 0.85)",
+            "rgba(34, 197, 94, 0.85)",
+            "rgba(245, 158, 11, 0.85)",
+            "rgba(56, 189, 248, 0.85)",
+            "rgba(244, 114, 182, 0.85)",
+          ],
+          borderRadius: 10,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#0f172a",
+          borderColor: "rgba(148, 163, 184, 0.8)",
+          borderWidth: 1,
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            font: { family: "Poppins", size: 11 },
+            color: "#6b7280",
+          },
+        },
+        y: {
+          beginAtZero: true,
+          max: 5,
+          grid: { color: "rgba(226, 232, 240, 0.8)" },
+          ticks: {
+            stepSize: 1,
+            font: { family: "Poppins", size: 11 },
+            color: "#6b7280",
+          },
+        },
+      },
+    },
+  });
+
+  initFeedbackCommentsChart(list);
+
+  if (summaryEl) {
+    const overallScore = dataValues[0];
+    let mood = "Average";
+    if (overallScore >= 4.0) mood = "Good";
+    else if (overallScore <= 2.5) mood = "Poor";
+
+    summaryEl.textContent = `Overall satisfaction today is ${mood} (average rating ${overallScore}/5 across ${counts.overall || list.length
+      } feedback entries).`;
+  }
+}
+
+function initFeedbackCommentsChart(list) {
+  const canvas = document.getElementById("feedbackCommentsChart");
+  if (!canvas || typeof Chart === "undefined") return;
+
+  if (feedbackCommentsChart) {
+    feedbackCommentsChart.destroy();
+    feedbackCommentsChart = null;
+  }
+
+  if (!list || !list.length) return;
+
+  let positiveCount = 0;
+  let negativeCount = 0;
+  let neutralCount = 0;
+
+  const positiveKeywords = [
+    "good",
+    "great",
+    "excellent",
+    "tasty",
+    "nice",
+    "awesome",
+    "love",
+  ];
+  const negativeKeywords = [
+    "bad",
+    "poor",
+    "worst",
+    "cold",
+    "salty",
+    "spicy",
+    "oily",
+    "less",
+    "dirty",
+    "smell",
+    "late",
+    "delay",
+  ];
+  const neutralKeywords = [
+    "should",
+    "could",
+    "improve",
+    "suggest",
+    "maybe",
+    "recommend",
+  ];
+
+  list.forEach((item) => {
+    const parsed = parseStructuredFeedback(item.message);
+    const comment = (parsed.comments || "").toLowerCase();
+    if (!comment.trim()) return;
+
+    let isPositive = false;
+    let isNegative = false;
+    let isNeutral = false;
+
+    positiveKeywords.forEach((k) => {
+      if (comment.includes(k)) isPositive = true;
+    });
+    negativeKeywords.forEach((k) => {
+      if (comment.includes(k)) isNegative = true;
+    });
+    neutralKeywords.forEach((k) => {
+      if (comment.includes(k)) isNeutral = true;
+    });
+
+    // If no keyword match, treat as neutral / average.
+    if (!isPositive && !isNegative && !isNeutral) {
+      isNeutral = true;
+    }
+
+    if (isPositive) positiveCount += 1;
+    if (isNegative) negativeCount += 1;
+    if (isNeutral) neutralCount += 1;
+  });
+
+  const total = positiveCount + negativeCount + neutralCount;
+  if (!total) return;
+
+  const ctx = canvas.getContext("2d");
+
+  feedbackCommentsChart = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Good (positive)", "Bad (negative)", "Average / neutral"],
+      datasets: [
+        {
+          data: [positiveCount, negativeCount, neutralCount],
+          backgroundColor: [
+            "rgba(34, 197, 94, 0.85)",
+            "rgba(248, 113, 113, 0.85)",
+            "rgba(56, 189, 248, 0.85)",
+          ],
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: {
+            font: { family: "Poppins", size: 11 },
+            color: "#6b7280",
+          },
+        },
+        tooltip: {
+          backgroundColor: "#0f172a",
+          borderColor: "rgba(148, 163, 184, 0.8)",
+          borderWidth: 1,
+        },
+      },
+    },
+  });
+}
+
+function renderFoodPlan(list, dateStr) {
+  const listEl = document.getElementById("foodPlanList");
+  if (!listEl) return;
+
+  listEl.innerHTML = "";
+
+  if (!list.length) {
+    const li = document.createElement("li");
+    li.className = "food-plan-empty";
+    li.textContent =
+      "No estimated quantities yet. Once students mark attendance, values will appear here.";
+    listEl.appendChild(li);
+    return;
+  }
+
+  const header = document.createElement("li");
+  header.className = "food-plan-header";
+  header.textContent = `Date: ${dateStr || getTodayISO()}`;
+  listEl.appendChild(header);
+
+  list.forEach((mealBlock) => {
+    const mealLabel = mealBlock.mealLabel || mealBlock.meal;
+    const expected = mealBlock.expectedStudents ?? 0;
+    const items = mealBlock.items || [];
+
+    const mealHeader = document.createElement("li");
+    mealHeader.className = "food-plan-meal-title";
+    mealHeader.textContent = `${mealLabel} (Count: ${expected})`;
+    listEl.appendChild(mealHeader);
+
+    items.forEach((item) => {
+      const li = document.createElement("li");
+      li.className = "food-plan-row";
+
+      const quantity = typeof item.quantity === "number" ? item.quantity : 0;
+      const unit = (item.unit || "").trim();
+      const itemName = item.itemName || item.name || "";
+      const qtyText = unit ? `${quantity} ${unit}` : String(quantity);
+
+      const label = document.createElement("span");
+      label.className = "food-plan-name";
+      label.textContent = `${itemName}:`;
+
+      const qty = document.createElement("span");
+      qty.className = "food-plan-qty";
+      qty.textContent = qtyText;
+
+      li.appendChild(label);
+      li.appendChild(qty);
+      listEl.appendChild(li);
+    });
+  });
 }
 
 function renderFeedbackListAdmin(list) {
@@ -855,16 +1224,8 @@ async function loadTimetableAdmin() {
       return;
     }
 
-    const uploadedAt = data.uploadedAt
-      ? new Date(data.uploadedAt).toLocaleString([], {
-          dateStyle: "short",
-          timeStyle: "short",
-        })
-      : "";
-
-    infoEl.textContent = `Current timetable: ${
-      data.originalName || "File"
-    } (uploaded ${uploadedAt})`;
+    // Hide file name and upload time; keep a simple generic message.
+    infoEl.textContent = "A current mess timetable is uploaded and visible to students.";
   } catch (err) {
     console.error("Admin timetable fetch error", err);
     infoEl.textContent = "Unable to load current timetable.";
